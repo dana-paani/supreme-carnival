@@ -1,0 +1,117 @@
+import dash
+from dash.dependencies import Output, Event
+import dash_core_components as dcc
+import dash_html_components as html
+import plotly
+import random
+import plotly.graph_objs as go
+from collections import deque
+
+X = deque(maxlen=10)
+X.append(0)
+A = deque(maxlen=10)
+A.append(1)
+B = deque(maxlen=10)
+B.append(10)
+C = deque(maxlen=10)
+C.append(14)
+D = deque(maxlen=10)
+D.append(17)
+E = deque(maxlen=10)
+E.append(21)
+F = deque(maxlen=10)
+F.append(9)
+G = deque(maxlen=10)
+G.append(16)
+
+
+filename = 'example.csv'
+counter = 0
+NO_OF_LINES = 100
+
+
+def writeToFile(filename, x, a, b, c, d, e, f, g):
+    with open(filename, 'w') as q:
+        for i in range(NO_OF_LINES):
+            q.write('%f,%f,%f,%f,%f,%f,%f,%f,\n' %
+                    (x[i], a[i], b[i], c[i], d[i], e[i], f[i]), g[i])
+
+
+app = dash.Dash(__name__)
+app.layout = html.Div(
+    [
+        dcc.Graph(id='live-graph', animate=True),
+        dcc.Interval(
+            id='graph-update',
+            interval=1*1000
+        ),
+    ]
+)
+
+@app.callback(Output('live-graph', 'figure'),
+              events=[Event('graph-update', 'interval')])
+def update_graph_scatter():
+
+    X.append(X[-1]+10)
+    A.append(random.uniform(0, 100))
+    B.append(random.uniform(0, 100))
+    C.append(random.uniform(0, 100))
+    D.append(random.uniform(0, 100))
+    E.append(random.uniform(0, 100))
+    F.append(random.uniform(0, 100))
+    G.append(random.uniform(0, 100))
+
+    data1 = plotly.graph_objs.Scatter(
+        x=list(X),
+        y=list(A),
+        name='Scatter',
+        mode='lines+markers'
+    )
+
+    data2 = plotly.graph_objs.Scatter(
+        x=list(X),
+        y=list(B),
+        name='Scatter',
+        mode='lines+markers'
+    )
+
+    data3 = plotly.graph_objs.Scatter(
+        x=list(X),
+        y=list(C),
+        name='Scatter',
+        mode='lines+markers'
+    )
+
+    data4 = plotly.graph_objs.Scatter(
+        x=list(X),
+        y=list(D),
+        name='Scatter',
+        mode='lines+markers'
+    )
+
+    data5 = plotly.graph_objs.Scatter(
+        x=list(X),
+        y=list(E),
+        name='Scatter',
+        mode='lines+markers'
+    )
+
+    data6 = plotly.graph_objs.Scatter(
+        x=list(X),
+        y=list(F),
+        name='Scatter',
+        mode='lines+markers'
+    )
+
+    data7 = plotly.graph_objs.Scatter(
+        x=list(X),
+        y=list(G),
+        name='Scatter',
+        mode='lines+markers'
+    )
+
+    #writeToFile(filename, X, A, B, C, D, E, F, G)
+
+    return {'data': [data1, data2, data3, data4, data5, data6, data7], 'layout': go.Layout(xaxis=dict(range=[min(X), max(X)]), yaxis=dict(range=[min(A), max(A)]),)}
+if __name__ == '__main__':
+    app.run_server(debug=True, port = 8081)
