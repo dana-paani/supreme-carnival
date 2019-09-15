@@ -1,0 +1,247 @@
+#include <iostream> 
+using namespace std; 
+ 
+inline
+void Exch(int &a, int &b) { 
+    int aux = a; 
+    a = b; 
+    b = aux; 
+} 
+ 
+bool Greater(int a, int b) {
+    return a > b; 
+}
+ 
+bool Smaller(int a, int b) {
+    return a < b; 
+}
+ 
+ 
+int Average(int a, int b) {
+    return (a + b) / 2; 
+}
+ 
+int Signum(int a, int b) { 
+    if( a == b ) 
+        return 0; 
+    return a < b ? -1 : 1; 
+} 
+ 
+class Heap 
+{ 
+public: 
+ 
+    Heap(int *b, bool (*c)(int, int)) : A(b), comp(c) {
+        heapSize = -1; 
+    }
+ 
+    virtual ~Heap() {
+        if( A ) 
+            delete[] A; 
+    }
+ 
+    virtual bool Insert(int e) = 0; 
+    virtual int  GetTop() = 0; 
+    virtual int  ExtractTop() = 0; 
+    virtual int  GetCount() = 0; 
+ 
+protected: 
+    int left(int i) {
+        return 2 * i + 1; 
+    }
+ 
+    int right(int i) {
+        return 2 * (i + 1); 
+    }
+ 
+    int parent(int i) 
+    { 
+        if( i <= 0 ) 
+            return -1; 
+        return (i - 1)/2; 
+    } 
+ 
+    int   *A; 
+    bool  (*comp)(int, int); 
+    int   heapSize; 
+ 
+    int top(void) 
+    { 
+        int max = -1; 
+ 
+        if( heapSize >= 0 ) 
+        { 
+            max = A[0]; 
+        } 
+ 
+        return max; 
+    } 
+ 
+    int count() 
+    { 
+        return heapSize + 1; 
+    } 
+    void heapify(int i) 
+    { 
+        int p = parent(i); 
+        if( p >= 0 && comp(A[i], A[p]) ) 
+        { 
+            Exch(A[i], A[p]); 
+            heapify(p); 
+        } 
+    } 
+ 
+    int deleteTop() 
+    { 
+        int del = -1; 
+        if( heapSize > -1) 
+        { 
+            del = A[0]; 
+            Exch(A[0], A[heapSize]); 
+            heapSize--; 
+            heapify(parent(heapSize+1)); 
+        } 
+        return del; 
+    } 
+ 
+    bool insertHelper(int key) 
+    { 
+        bool ret = false; 
+ 
+        if( heapSize < 128 ) 
+        { 
+            ret = true; 
+            heapSize++; 
+            A[heapSize] = key; 
+            heapify(heapSize); 
+        } 
+ 
+        return ret; 
+    } 
+}; 
+ 
+ 
+class MaxHeap : public Heap 
+{ 
+private: 
+ 
+public: 
+    MaxHeap() : Heap(new int[128], &Greater)  {  } 
+ 
+    ~MaxHeap()  { } 
+ 
+    int GetTop() {
+        return top(); 
+    }
+ 
+    int ExtractTop() {
+    	return deleteTop(); 
+    }
+ 
+    int  GetCount() {
+        return count(); 
+    }
+ 
+    bool Insert(int key) {
+        return insertHelper(key); 
+    }
+}; 
+ 
+class MinHeap : public Heap 
+{ 
+private: 
+ 
+public: 
+    MinHeap() : Heap(new int[128], &Smaller)  {  } 
+ 
+    ~MinHeap()  { } 
+ 
+    int GetTop() {
+        return top(); 
+    }
+ 
+    int ExtractTop() {
+    	return deleteTop(); 
+    }
+ 
+    int  GetCount() {
+        return count(); 
+    }
+ 
+    bool Insert(int key) {
+        return insertHelper(key); 
+    }
+}; 
+ 
+int median(int e, int &md, Heap &l, Heap &r) 
+{ 
+    int sig = Signum(l.GetCount(), r.GetCount()); 
+    switch(sig) 
+    { 
+    case 1:
+  		if( e<md ){ 
+            r.Insert(l.ExtractTop()); 
+            l.Insert(e); 
+        } 
+        else
+        	 r.Insert(e); 
+ 
+        md = Average(l.GetTop(), r.GetTop()); 
+ 
+        break; 
+ 
+    case 0:
+  		if( e<md ) { 
+            l.Insert(e); 
+            md = l.GetTop(); 
+        } 
+        else{
+            r.Insert(e); 
+            md = r.GetTop(); 
+        } 
+ 
+        break; 
+ 
+    case -1:   
+        if(e<md) 
+            l.Insert(e); 
+ 
+        else
+        { 
+           l.Insert(r.ExtractTop()); 
+  			r.Insert(e); 
+        } 
+ 
+        md = Average(l.GetTop(), r.GetTop()); 
+        break; 
+    } 
+    return md; 
+} 
+ 
+ 
+int main() 
+{ 
+   int n,i;
+   cin>>n;
+ 
+   int a[n];
+   for(i=0; i<n; i++) cin>>a[i];
+ 
+ 
+    int md = 0; 
+ 
+    Heap *left  = new MaxHeap(); 
+    Heap *right = new MinHeap(); 
+ 
+    for( i=0; i<n; i++) 
+    { 
+        md = median(a[i], md, *left, *right); 
+ 
+        cout<<md<<endl; 
+    } 
+ 
+    delete left; 
+    delete right; 
+ 
+    return 0; 
+} 
